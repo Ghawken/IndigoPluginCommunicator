@@ -46,7 +46,9 @@ namespace IndigoPlugin
         public string MACaddress { get; set; }
         public string localIPaddress { get; set; }
         static public bool updateNeeded { get; set; }
-        
+        public Int64 idleTime { get; set; }
+        public string userName { get; set; }
+        public Int64 upTime { get; set; }
 
         PerformanceCounter cpuCounter;
         PerformanceCounter ramCounter;
@@ -73,6 +75,7 @@ namespace IndigoPlugin
             localIPaddress = "";
             currentVersion = "2";
             updateNeeded = false;
+            idleTime = 0;
 
         //# Okay Versions across two applications
         //# First Number 0 - ignore
@@ -266,6 +269,38 @@ namespace IndigoPlugin
                 MACaddress = "unknown";
                 Logger.Error("MAC address get error" + exc);
             }
+            // get idle time
+            try
+            {
+                var idle = IdleTimeDetector.GetIdleTimeInfo();
+                idleTime = idle.IdleTime.Minutes;
+                Logger.Debug("IdleTime Minutes:" + idleTime.ToString());
+            }
+            catch (Exception exc)
+            {
+                Logger.Error("Idletime exc:" + exc);
+            }
+            //get current username
+            try
+            {
+                string user = Environment.UserName.ToString();
+                Logger.Debug("Username Returned as:" + user);
+                userName = user;
+            }
+            catch (Exception exc)
+            {
+                Logger.Error("Username exception" + exc);
+            }
+
+            try
+            {
+                upTime = TimeSpan.FromMilliseconds(Environment.TickCount).Hours;
+                Logger.Debug("upTime =" + upTime);   
+            }
+            catch (Exception exc)
+            {
+                Logger.Error("Uptime Exception" + exc);
+            }
 
 
         }
@@ -327,7 +362,7 @@ namespace IndigoPlugin
             string ServerIP = IndigoPlugin.Properties.Settings.Default.ipaddress;
             try
             {
-                string api = @"http://" + ServerIP + "/Information?ForeGroundApp="+ForegroundApp+"&CPU="+CPU+"&MemLoad="+MemLoad+"&Hostname="+Hostname+"&MAC="+MACaddress;
+                string api = @"http://" + ServerIP + "/Information?ForeGroundApp="+ForegroundApp+"&CPU="+CPU+"&MemLoad="+MemLoad+"&Hostname="+Hostname+"&MAC="+MACaddress+"&Idle="+idleTime+"&userName="+userName+"&upTime="+upTime;
                 //string data = "";
                 // strcontentType = "html";
                 // Create a request using a URL that can receive a post. 
@@ -562,4 +597,51 @@ namespace IndigoPlugin
         }
 
     }
+
+        public static class IdleTimeDetector
+        {
+            [DllImport("user32.dll")]
+            static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+            public static IdleTimeInfo GetIdleTimeInfo()
+            {
+                int systemUptime = Environment.TickCount,
+                    lastInputTicks = 0,
+                    idleTicks = 0;
+
+                LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
+                lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
+                lastInputInfo.dwTime = 0;
+
+                if (GetLastInputInfo(ref lastInputInfo))
+                {
+                    lastInputTicks = (int)lastInputInfo.dwTime;
+
+                    idleTicks = systemUptime - lastInputTicks;
+                }
+
+                return new IdleTimeInfo
+                {
+                    LastInputTime = DateTime.Now.AddMilliseconds(-1 * idleTicks),
+                    IdleTime = new TimeSpan(0, 0, 0, 0, idleTicks),
+                    SystemUptimeMilliseconds = systemUptime,
+                };
+            }
+        }
+
+        public class IdleTimeInfo
+        {
+            public DateTime LastInputTime { get; internal set; }
+
+            public TimeSpan IdleTime { get; internal set; }
+
+            public int SystemUptimeMilliseconds { get; internal set; }
+        }
+
+        internal struct LASTINPUTINFO
+        {
+            public uint cbSize;
+            public uint dwTime;
+        }
+    
 }
