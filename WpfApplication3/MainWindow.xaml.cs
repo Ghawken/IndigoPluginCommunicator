@@ -51,8 +51,8 @@ namespace IndigoPlugin
                 string api = @"http://" + ServerIP.Text +"/StartupConnect/";
                 IndigoPlugin.Properties.Settings.Default.ipaddress = ServerIP.Text;
               
-                connectInfo.Text = "Trying to connect....";
-                connectInfo.Text += " to   " + ServerIP.Text + System.Environment.NewLine;
+                connectInfo.Text = " Trying to connect....";
+                connectInfo.Text += " to   " + ServerIP.Text + System.Environment.NewLine + System.Environment.NewLine;
                 Logger.Info("Connecting to:" + ServerIP + " and :" + api);
 
             //string data = "";
@@ -132,7 +132,7 @@ namespace IndigoPlugin
                 {
                     App.nIcon.ShowBalloonTip(15000, "Indigo Plugin Communicator", "Update Needed for PC Software; Please download and install to ensure proper functioning", System.Windows.Forms.ToolTipIcon.Error);
                     App.nIcon.Text = "Indigo Plugin Communicator.  Connected.  Updated Needed.";
-                    connectInfo.Text += "Connection Successful.  Update recommended." + System.Environment.NewLine+ System.Environment.NewLine+ "Select Debug options and Save to continue.";
+                    connectInfo.Text += " Connection Successful.  Update recommended." + System.Environment.NewLine+ System.Environment.NewLine+ "Select Debug options and Save to continue.";
                     IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
                     Properties.Settings.Default.Save();
                     Logger.Info("Connection Successful");
@@ -141,7 +141,7 @@ namespace IndigoPlugin
 
                 App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Connected", System.Windows.Forms.ToolTipIcon.Info);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Connected";
-                connectInfo.Text += "Connection Successful.  Select options and Save to continue.";
+                connectInfo.Text += " Connection Successful.  Select options and Save to continue.";
                 IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
                 Properties.Settings.Default.Save();
                 Logger.Info("Connection Successful");

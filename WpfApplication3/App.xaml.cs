@@ -51,7 +51,7 @@ namespace IndigoPlugin
         static public bool updateNeeded { get; set; }
         public ulong idleTime { get; set; }
         public string userName { get; set; }
-        public Int64 upTime { get; set; }
+        public double upTime { get; set; }
 
         PerformanceCounter cpuCounter;
         PerformanceCounter ramCounter;
@@ -60,10 +60,19 @@ namespace IndigoPlugin
         string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), true)[0]).Value;
         private Mutex _instanceMutex = null;
 
+        
+
         public void Application_Startup(object sender, StartupEventArgs e)
         {
 
-            Logger.InfoFormat("----------------- Starting IndigoPlugin --------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.InfoFormat("-------------------- Starting IndigoPlugin ------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+
+            this.Dispatcher.UnhandledException += OnDispatcherUnhandledException;
+
             string ipaddress = IndigoPlugin.Properties.Settings.Default.ipaddress;
             bool setupcomplete = IndigoPlugin.Properties.Settings.Default.setupcomplete;
             bool debuglogging = IndigoPlugin.Properties.Settings.Default.debuglogging;
@@ -71,22 +80,24 @@ namespace IndigoPlugin
             // Set variables to nil in case in accessing (can't send html blanks)
             ForegroundApp = "unknown";
             CPU = "unknown";
-            MemLoad = "unknown";
+            MemLoad = "unknown";           
             OpSystem = "unknown";
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "2";
+            currentVersion = "3";
             updateNeeded = false;
             idleTime = 0;
-            
-        //# Okay Versions across two applications
-        //# First Number 0 - ignore
-        //# Second Number is the Mac Version -- increasing this without breaking PC app versions
-        //# Third Number is the PC Version -- 
-        //# e.g 0.2.2 -- 2 is current mac version, 2 is current PC version
-        //# if version goes to 0.2.4  -- PC version needs to be updated if less than 4 and will organise message
-        //# if version is 0.4.2 -- PC version remains on 2 - so only Mac update needed/done.
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.InfoFormat("-------------------- Version   :"+currentVersion.ToString()+"  --------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+            //# Okay Versions across two applications
+            //# First Number 0 - ignore
+            //# Second Number is the Mac Version -- increasing this without breaking PC app versions
+            //# Third Number is the PC Version -- 
+            //# e.g 0.2.2 -- 2 is current mac version, 2 is current PC version
+            //# if version goes to 0.2.4  -- PC version needs to be updated if less than 4 and will organise message
+            //# if version is 0.4.2 -- PC version remains on 2 - so only Mac update needed/done.
 
 
             cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
@@ -307,7 +318,7 @@ namespace IndigoPlugin
 
                 Int32 tickcount = System.Environment.TickCount & Int32.MaxValue;
 
-                upTime = TimeSpan.FromMilliseconds(tickcount).Hours;
+                upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
 
                 Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
                 Logger.Debug("upTime =" + upTime);   
@@ -319,6 +330,16 @@ namespace IndigoPlugin
             }
 
 
+        }
+
+        void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            
+            Logger.Error("UnHandled Exception Occured.  Please let developer know and will 'Handle' " + e.Exception.Message);
+
+            string errorMessage = string.Format("An unhandled exception occurred: {0}", e.Exception.Message);
+            MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
         }
 
         public string GetMacByIP(string ipAddress)
