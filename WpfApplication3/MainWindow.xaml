@@ -8,17 +8,17 @@
         xmlns:properties="clr-namespace:IndigoPlugin.Properties"
         Title="Indigo Plugin Communicator"  Height="435.103" Width="611.086"
         ShowInTaskbar="True" FontFamily="Calibri"
-           WindowStyle="ToolWindow" >
+           WindowStyle="ToolWindow" Background="Ivory">
 
     <Canvas>
-        <Grid Height="333" VerticalAlignment="Top" HorizontalAlignment="Left" Width="444" Canvas.Top="-3">
+        <Grid Height="386" VerticalAlignment="Top" HorizontalAlignment="Left" Width="515" Canvas.Top="-12" Canvas.Left="-44">
             <Grid.RenderTransform>
                 <TransformGroup>
-                    <ScaleTransform ScaleY="0.3" ScaleX="0.3"/>
+                    <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
                 </TransformGroup>
             </Grid.RenderTransform>
             <Grid.Background>
-                <ImageBrush ImageSource="Icons/indigo.ico" Stretch="None"/>
+                <ImageBrush ImageSource="Icons/Win_Remote_Icon.ico" Stretch="None"/>
             </Grid.Background>
 
 
@@ -26,7 +26,7 @@
         <Grid Margin="0,30" HorizontalAlignment="Right"/>
         <Grid Margin="10,90,0,0">
             <TextBox AcceptsReturn="True" VerticalAlignment="Stretch" TextAlignment="Center"
-                     Text="v.0.2 This small app is designed to communicate with a Indigo Server (Mac OSX) and allow uptodate information to be sent/received. It also allows On/Off controls to be sent.  It requires the WinRemote Indigoplugin to be installed and running on your indigo Server." TextWrapping="Wrap" Margin="0,0,0,-37" HorizontalAlignment="Left" Width="564"></TextBox>
+                     Text="v.0.2 This small app is designed to communicate with a Indigo Server (Mac OSX) and allow uptodate information to be sent/received. It also allows On/Off controls to be sent.  It requires the WinRemote Indigoplugin to be installed and running on your indigo Server." TextWrapping="Wrap" Margin="148,-22,0,-34" HorizontalAlignment="Left" Width="393"></TextBox>
 
         </Grid>
         <Grid Height="22" Canvas.Left="10" Canvas.Top="160" Width="264">

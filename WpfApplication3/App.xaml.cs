@@ -37,6 +37,9 @@ namespace IndigoPlugin
         [DllImport("iphlpapi.dll", ExactSpelling = true)]
         public static extern int SendARP(int DestIP, int SrcIP, [Out] byte[] pMacAddr, ref int PhyAddrLen);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool LockWorkStation();
+
         static public string currentVersion { get; set; }
         public string ForegroundApp { get; set; }
         public string CPU { get; set; }
@@ -46,7 +49,7 @@ namespace IndigoPlugin
         public string MACaddress { get; set; }
         public string localIPaddress { get; set; }
         static public bool updateNeeded { get; set; }
-        public Int64 idleTime { get; set; }
+        public ulong idleTime { get; set; }
         public string userName { get; set; }
         public Int64 upTime { get; set; }
 
@@ -76,7 +79,7 @@ namespace IndigoPlugin
             currentVersion = "2";
             updateNeeded = false;
             idleTime = 0;
-
+            
         //# Okay Versions across two applications
         //# First Number 0 - ignore
         //# Second Number is the Mac Version -- increasing this without breaking PC app versions
@@ -119,7 +122,7 @@ namespace IndigoPlugin
             }
 
             System.Windows.Forms.NotifyIcon icon = new System.Windows.Forms.NotifyIcon();
-            Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/IndigoPlugin;component/Icons/indigo.ico")).Stream;
+            Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/IndigoPlugin;component/Icons/Win_Remote_Icon.ico")).Stream;
             icon.Icon = new System.Drawing.Icon(iconStream);
             iconStream.Dispose();
 
@@ -272,9 +275,15 @@ namespace IndigoPlugin
             // get idle time
             try
             {
-                var idle = IdleTimeDetector.GetIdleTimeInfo();
-                idleTime = idle.IdleTime.Minutes;
-                Logger.Debug("IdleTime Minutes:" + idleTime.ToString());
+                //var idle = IdleTimeDetector.GetIdleTimeInfo();
+                UInt64 idle = IdleTimeDetector.GetLastInputTime();
+
+                idleTime = idle/60;
+               // Logger.Debug("IdleTime: IdleTime SystemUptmeMilliseconds:" + idle.SystemUptimeMilliseconds.ToString());
+               //  Logger.Debug("IdleTime: IdleTime LastInputTime:" + idle.LastInputTime.ToString());
+                Logger.Debug("IdleTime: IdleTime Seconds:" + idle.ToString());
+
+                Logger.Debug("IdleTime: Minutes:" + idleTime.ToString());
             }
             catch (Exception exc)
             {
@@ -294,12 +303,19 @@ namespace IndigoPlugin
 
             try
             {
-                upTime = TimeSpan.FromMilliseconds(Environment.TickCount).Hours;
+                // deal with 24.9 days uptime
+
+                Int32 tickcount = System.Environment.TickCount & Int32.MaxValue;
+
+                upTime = TimeSpan.FromMilliseconds(tickcount).Hours;
+
+                Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
                 Logger.Debug("upTime =" + upTime);   
             }
             catch (Exception exc)
             {
                 Logger.Error("Uptime Exception" + exc);
+                upTime = 0;
             }
 
 
@@ -398,9 +414,9 @@ namespace IndigoPlugin
                 // Logger.Debug(statusdescription);
                 Logger.Debug("--------Response Status Received:"+statusdescription);
                 //Logger.Debug("--------Headers Recevied:" + headers);
-                Logger.Debug("--------IpHeader Key[0] Recevied:" + ipHeaderkey);
-                Logger.Debug("--------IpHeader Result for key IPAddress Recevied:" + ipHeaderResult);
-                Logger.Debug("--------IpHeader Result for key IndigoPluginVersion Recevied:" + versionheader);
+               // Logger.Debug("--------IpHeader Key[0] Recevied:" + ipHeaderkey);
+               // Logger.Debug("--------IpHeader Result for key IPAddress Recevied:" + ipHeaderResult);
+              //  Logger.Debug("--------IpHeader Result for key IndigoPluginVersion Recevied:" + versionheader);
 
                 localIPaddress = ipHeaderResult;
 
@@ -463,6 +479,23 @@ namespace IndigoPlugin
                 psi.CreateNoWindow = true;
                 psi.UseShellExecute = false;
                 Process.Start(psi);
+            }
+
+            if (response.Contains("COMMAND LOCK"))
+            {
+                // Lock the Computer
+                Logger.Debug("COMMAND LOCK Found; Locking Computer");
+                
+                try
+                {
+                    LockWorkStation();
+                }
+                catch (Exception exc)
+                {
+                    Logger.Debug("Exception in Lock:" + exc);
+                }
+                    
+                    
             }
         }
 
@@ -597,51 +630,83 @@ namespace IndigoPlugin
         }
 
     }
-
-        public static class IdleTimeDetector
-        {
-            [DllImport("user32.dll")]
-            static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-
-            public static IdleTimeInfo GetIdleTimeInfo()
-            {
-                int systemUptime = Environment.TickCount,
-                    lastInputTicks = 0,
-                    idleTicks = 0;
-
-                LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
-                lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
-                lastInputInfo.dwTime = 0;
-
-                if (GetLastInputInfo(ref lastInputInfo))
-                {
-                    lastInputTicks = (int)lastInputInfo.dwTime;
-
-                    idleTicks = systemUptime - lastInputTicks;
-                }
-
-                return new IdleTimeInfo
-                {
-                    LastInputTime = DateTime.Now.AddMilliseconds(-1 * idleTicks),
-                    IdleTime = new TimeSpan(0, 0, 0, 0, idleTicks),
-                    SystemUptimeMilliseconds = systemUptime,
-                };
-            }
-        }
-
-        public class IdleTimeInfo
-        {
-            public DateTime LastInputTime { get; internal set; }
-
-            public TimeSpan IdleTime { get; internal set; }
-
-            public int SystemUptimeMilliseconds { get; internal set; }
-        }
-
+    public static class IdleTimeDetector
+    {
+        [DllImport("user32.dll")]
+        static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
         internal struct LASTINPUTINFO
         {
             public uint cbSize;
             public uint dwTime;
         }
-    
+        public static uint GetLastInputTime()
+        {
+            uint idleTime = 0;
+            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
+            lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
+            lastInputInfo.dwTime = 0;
+
+            uint envTicks = (uint)Environment.TickCount;
+
+            if (GetLastInputInfo(ref lastInputInfo))
+            {
+                uint lastInputTick = lastInputInfo.dwTime;
+
+                idleTime = envTicks - lastInputTick;
+            }
+
+            return ((idleTime > 0) ? (idleTime / 1000) : 0);
+        }
+    }
+
+    //   public static class IdleTimeDetector
+
+
+
+
+    //{
+    //        [DllImport("user32.dll")]
+    //        static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+    //        public static IdleTimeInfo GetIdleTimeInfo()
+    //        {
+    //            int systemUptime = Environment.TickCount,
+    //                lastInputTicks = 0,
+    //                idleTicks = 0;
+
+    //            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
+    //            lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
+    //            lastInputInfo.dwTime = 0;
+
+    //            if (GetLastInputInfo(ref lastInputInfo))
+    //            {
+    //                lastInputTicks = (int)lastInputInfo.dwTime;
+
+    //                idleTicks = systemUptime - lastInputTicks;
+    //            }
+
+    //            return new IdleTimeInfo
+    //            {
+    //                LastInputTime = DateTime.Now.AddMilliseconds(-1 * idleTicks),
+    //                IdleTime = new TimeSpan(0, 0, 0, 0, idleTicks),
+    //                SystemUptimeMilliseconds = systemUptime,
+    //            };
+    //        }
+    //    }
+
+    //    public class IdleTimeInfo
+    //    {
+    //        public DateTime LastInputTime { get; internal set; }
+
+    //        public TimeSpan IdleTime { get; internal set; }
+
+    //        public int SystemUptimeMilliseconds { get; internal set; }
+    //    }
+
+    //    internal struct LASTINPUTINFO
+    //    {
+    //        public uint cbSize;
+    //        public uint dwTime;
+    //    }
+
 }
