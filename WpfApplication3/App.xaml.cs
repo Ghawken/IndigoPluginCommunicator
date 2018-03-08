@@ -99,7 +99,7 @@ namespace IndigoPlugin
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "3";
+            currentVersion = "4";
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
