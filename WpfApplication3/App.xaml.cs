@@ -27,6 +27,10 @@ namespace IndigoPlugin
     public partial class App : Application
     {
         private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private System.Windows.Forms.ContextMenu contextMenu1;
+        private System.Windows.Forms.MenuItem menuItem1;
+        private System.Windows.Forms.MenuItem menuItem2;
+        private System.Windows.Forms.MenuItem menuItem3;
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
@@ -40,6 +44,9 @@ namespace IndigoPlugin
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool LockWorkStation();
 
+        [DllImport("kernel32")]
+        extern static UInt64 GetTickCount64();
+
         static public string currentVersion { get; set; }
         public string ForegroundApp { get; set; }
         public string CPU { get; set; }
@@ -52,6 +59,7 @@ namespace IndigoPlugin
         public ulong idleTime { get; set; }
         public string userName { get; set; }
         public double upTime { get; set; }
+        
 
         PerformanceCounter cpuCounter;
         PerformanceCounter ramCounter;
@@ -65,11 +73,17 @@ namespace IndigoPlugin
         public void Application_Startup(object sender, StartupEventArgs e)
         {
 
+
+
             Logger.Info("-------------------------------------------------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat("-------------------- Starting IndigoPlugin ------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
+
+            var SystemVersion = Environment.OSVersion.Version.Major;
+
+            Logger.InfoFormat(":: System Major Version:   "+SystemVersion.ToString());
 
             this.Dispatcher.UnhandledException += OnDispatcherUnhandledException;
 
@@ -89,7 +103,7 @@ namespace IndigoPlugin
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
-            Logger.InfoFormat("-------------------- Version   :"+currentVersion.ToString()+"  --------------------------------");
+            Logger.InfoFormat(":: Application Version   :"+currentVersion.ToString());
             Logger.Info("-------------------------------------------------------------------------");
             //# Okay Versions across two applications
             //# First Number 0 - ignore
@@ -147,7 +161,29 @@ namespace IndigoPlugin
             }
             //nIcon.Click += nIcon_Click;
             nIcon.DoubleClick += nIcon_Click;
-// if already setup check connection and then reset setupcomplete as needed
+
+            this.contextMenu1 = new System.Windows.Forms.ContextMenu();
+            this.menuItem1 = new System.Windows.Forms.MenuItem();
+            this.menuItem2 = new System.Windows.Forms.MenuItem();
+            this.menuItem3 = new System.Windows.Forms.MenuItem();
+
+            this.contextMenu1.MenuItems.AddRange(
+                    new System.Windows.Forms.MenuItem[] { this.menuItem1, this.menuItem2, this.menuItem3});
+            this.menuItem1.Index = 2;
+            this.menuItem1.Text = "E&xit";
+            this.menuItem1.Click += new System.EventHandler(this.menuItem1_Click);
+
+            this.menuItem2.Index = 1;
+            this.menuItem2.Text = "Show Window";
+            this.menuItem2.Click += new System.EventHandler(this.menuItem2_Click);
+
+            this.menuItem3.Index = 0;
+            this.menuItem3.Text = "Hide Window";
+            this.menuItem3.Click += new System.EventHandler(this.menuItem3_Click);
+
+            nIcon.ContextMenu = this.contextMenu1;
+
+            // if already setup check connection and then reset setupcomplete as needed
             if (setupcomplete == true)
             {
                 // Should already be setup
@@ -315,13 +351,25 @@ namespace IndigoPlugin
             try
             {
                 // deal with 24.9 days uptime
+                // Use GetTickCount if Vista and above.
+                
+                if (System.Environment.OSVersion.Version.Major < 6)
+                {
+                    Int32 tickcount = System.Environment.TickCount & Int32.MaxValue;
+                    upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
+                    upTime = Math.Truncate(100 * upTime) / 100;
+                    Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
+                    Logger.Debug("upTime =" + upTime);   
+                }
+                else
+                {
+                    UInt64 tickcount = GetTickCount64();
+                    upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
+                    upTime = Math.Truncate(100 * upTime) / 100;
+                    Logger.Debug("upTime: GetTickCount64 used, equals:" + tickcount.ToString());
+                    Logger.Debug("upTime =" + upTime);
+                }
 
-                Int32 tickcount = System.Environment.TickCount & Int32.MaxValue;
-
-                upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
-
-                Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
-                Logger.Debug("upTime =" + upTime);   
             }
             catch (Exception exc)
             {
@@ -335,7 +383,7 @@ namespace IndigoPlugin
         void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             
-            Logger.Error("UnHandled Exception Occured.  Please let developer know and will 'Handle' " + e.Exception.Message);
+            Logger.Error("UnHandled Exception Occured.  Please let developer know and will 'Handle' " + e.Exception.Message.ToString()+ System.Environment.NewLine+  e.Exception.StackTrace.ToString());
 
             string errorMessage = string.Format("An unhandled exception occurred: {0}", e.Exception.Message);
             MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -390,6 +438,31 @@ namespace IndigoPlugin
                     MainWindow.ShowInTaskbar = true;
                     SystemCommands.RestoreWindow(MainWindow);
                 }
+        }
+
+        private void menuItem1_Click(object Sender, EventArgs e)
+        {
+            // Close the form, which closes the application.
+            Logger.Debug("Exit selected.");
+            nIcon.Visible = false;
+            nIcon.Dispose();
+            System.Windows.Application.Current.Shutdown();
+        }
+        private void menuItem2_Click(object Sender, EventArgs e)
+        {
+            // Close the form, which closes the application.
+            Logger.Debug("Show Window selected.");
+            MainWindow.Visibility = Visibility.Visible;
+            MainWindow.ShowInTaskbar = true;
+            SystemCommands.RestoreWindow(MainWindow); 
+        }
+        private void menuItem3_Click(object Sender, EventArgs e)
+        {
+            // Close the form, which closes the application.
+            Logger.Debug("Hide Window selected.");
+            MainWindow.WindowState = WindowState.Minimized;
+            MainWindow.Visibility = Visibility.Hidden;
+            MainWindow.ShowInTaskbar = false;
         }
 
 
