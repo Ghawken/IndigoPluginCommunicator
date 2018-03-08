@@ -74,14 +74,15 @@ namespace IndigoPlugin
         {
 
 
-
+            Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 20)));
             Logger.Info("-------------------------------------------------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat("-------------------- Starting IndigoPlugin ------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
-
+            Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 5)));
             var SystemVersion = Environment.OSVersion.Version.Major;
+            var is64bit = Environment.Is64BitOperatingSystem;
 
             Logger.InfoFormat(":: System Major Version:   "+SystemVersion.ToString());
 
@@ -105,6 +106,11 @@ namespace IndigoPlugin
             Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat(":: Application Version   :"+currentVersion.ToString());
             Logger.Info("-------------------------------------------------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.InfoFormat(":: Windows 64bit Version   :" + is64bit.ToString());
+            Logger.Info("-------------------------------------------------------------------------");
+           
+
             //# Okay Versions across two applications
             //# First Number 0 - ignore
             //# Second Number is the Mac Version -- increasing this without breaking PC app versions
@@ -302,14 +308,9 @@ namespace IndigoPlugin
             //Get MAC address for Wake on Lan
             try
             {
-                //String firstMacAddress = NetworkInterface
-                //        .GetAllNetworkInterfaces()
-                //        .Where(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                //        .Select(nic => nic.GetPhysicalAddress().ToString())
-                //        .FirstOrDefault();
-
-                MACaddress = "unknown";
-                if (localIPaddress !="")
+                // only check Mac if still unknown
+                // defaults to unknown on restart.
+                if (MACaddress == "unknown" && localIPaddress !="")
                 {
                     MACaddress = GetMacByIP(localIPaddress);
                 }
@@ -324,7 +325,6 @@ namespace IndigoPlugin
             {
                 //var idle = IdleTimeDetector.GetIdleTimeInfo();
                 UInt64 idle = IdleTimeDetector.GetLastInputTime();
-
                 idleTime = idle/60;
                // Logger.Debug("IdleTime: IdleTime SystemUptmeMilliseconds:" + idle.SystemUptimeMilliseconds.ToString());
                //  Logger.Debug("IdleTime: IdleTime LastInputTime:" + idle.LastInputTime.ToString());
@@ -357,15 +357,22 @@ namespace IndigoPlugin
                 {
                     Int32 tickcount = System.Environment.TickCount & Int32.MaxValue;
                     upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
+
                     upTime = Math.Truncate(100 * upTime) / 100;
+
                     Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
                     Logger.Debug("upTime =" + upTime);   
                 }
                 else
                 {
                     UInt64 tickcount = GetTickCount64();
-                    upTime = TimeSpan.FromMilliseconds(tickcount).TotalHours;
-                    upTime = Math.Truncate(100 * upTime) / 100;
+                    var doubletickcount = Convert.ToDouble(tickcount);
+                    upTime = TimeSpan.FromMilliseconds(doubletickcount).TotalHours;
+                    Logger.Debug("upTime Before Truncate =" + upTime);
+
+                    upTime = System.Math.Round(upTime, 3);
+                   // upTime = Math.Truncate(100 * upTime) / 100;
+
                     Logger.Debug("upTime: GetTickCount64 used, equals:" + tickcount.ToString());
                     Logger.Debug("upTime =" + upTime);
                 }
@@ -578,8 +585,7 @@ namespace IndigoPlugin
             if (response.Contains("COMMAND LOCK"))
             {
                 // Lock the Computer
-                Logger.Debug("COMMAND LOCK Found; Locking Computer");
-                
+                Logger.Debug("COMMAND LOCK Found; Locking Computer");              
                 try
                 {
                     LockWorkStation();
