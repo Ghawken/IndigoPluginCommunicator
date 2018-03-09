@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using log4net;
 using System.Net.NetworkInformation;
+using Microsoft.Win32;
 
 namespace IndigoPlugin
 {
@@ -59,6 +60,7 @@ namespace IndigoPlugin
         public ulong idleTime { get; set; }
         public string userName { get; set; }
         public double upTime { get; set; }
+        public string windowsVersion { get; set; }
         
 
         PerformanceCounter cpuCounter;
@@ -73,6 +75,7 @@ namespace IndigoPlugin
         public void Application_Startup(object sender, StartupEventArgs e)
         {
 
+            
 
             Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 20)));
             Logger.Info("-------------------------------------------------------------------------");
@@ -80,11 +83,44 @@ namespace IndigoPlugin
             Logger.InfoFormat("-------------------- Starting IndigoPlugin ------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
             Logger.Info("-------------------------------------------------------------------------");
-            Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 5)));
+        //    Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 5)));
             var SystemVersion = Environment.OSVersion.Version.Major;
+            
             var is64bit = Environment.Is64BitOperatingSystem;
 
             Logger.InfoFormat(":: System Major Version:   "+SystemVersion.ToString());
+            Logger.InfoFormat(":: System Version Name:   " + Environment.OSVersion.VersionString.ToString());
+            Logger.InfoFormat(":: System OSVersion Platform:   " + Environment.OSVersion.Platform.ToString());
+            Logger.InfoFormat(":: System OSVersion ServicePack:   " + Environment.OSVersion.ServicePack.ToString());
+            Logger.InfoFormat(":: System OSVersion Build:   " + Environment.OSVersion.Version.Build.ToString());
+            Logger.InfoFormat(":: System OSVersion Major:   " + Environment.OSVersion.Version.Major.ToString());
+            Logger.InfoFormat(":: System OSVersion MajorRevision:   " + Environment.OSVersion.Version.MajorRevision.ToString());
+            Logger.InfoFormat(":: System OSVersion Minor:   " + Environment.OSVersion.Version.Minor.ToString());
+            Logger.InfoFormat(":: System OSVersion MinorRevision:   " + Environment.OSVersion.Version.MinorRevision.ToString());
+            Logger.InfoFormat(":: System OSVersion Revision:   " + Environment.OSVersion.Version.Revision.ToString());
+
+            string releaseId = "";
+            string productname = "";
+            try
+            {
+                releaseId = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ReleaseId", "").ToString();
+                productname = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName", "").ToString();
+            }
+            catch (Exception exc)
+            {
+                Logger.Error("Exception in Get System names from Registry" + exc);
+         
+            }
+
+
+            Logger.InfoFormat(":: System OSVersion Release Id:   " + Environment.OSVersion.Version.Revision.ToString());
+
+            windowsVersion = productname + " Version " + releaseId.ToString() + " Build " + Environment.OSVersion.Version.Build.ToString();
+            Logger.Info(":: System Windows Version:   " + windowsVersion);
+
+            Logger.Info("-------------------------------------------------------------------------");
+            Logger.Info("-------------------------------------------------------------------------");
+
 
             this.Dispatcher.UnhandledException += OnDispatcherUnhandledException;
 
@@ -106,7 +142,7 @@ namespace IndigoPlugin
             Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat(":: Application Version   :"+currentVersion.ToString());
             Logger.Info("-------------------------------------------------------------------------");
-            Logger.Info("-------------------------------------------------------------------------");
+     //       Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat(":: Windows 64bit Version   :" + is64bit.ToString());
             Logger.Info("-------------------------------------------------------------------------");
            
@@ -479,7 +515,7 @@ namespace IndigoPlugin
             string ServerIP = IndigoPlugin.Properties.Settings.Default.ipaddress;
             try
             {
-                string api = @"http://" + ServerIP + "/Information?ForeGroundApp="+ForegroundApp+"&CPU="+CPU+"&MemLoad="+MemLoad+"&Hostname="+Hostname+"&MAC="+MACaddress+"&Idle="+idleTime+"&userName="+userName+"&upTime="+upTime;
+                string api = @"http://" + ServerIP + "/Information?ForeGroundApp="+ForegroundApp+"&CPU="+CPU+"&MemLoad="+MemLoad+"&Hostname="+Hostname+"&MAC="+MACaddress+"&Idle="+idleTime+"&userName="+userName+"&upTime="+upTime+"&version="+windowsVersion;
                 //string data = "";
                 // strcontentType = "html";
                 // Create a request using a URL that can receive a post. 
@@ -593,10 +629,12 @@ namespace IndigoPlugin
                 catch (Exception exc)
                 {
                     Logger.Debug("Exception in Lock:" + exc);
-                }
-                    
+
+                }                 
                     
             }
+            
+      
         }
 
         public void ShutdownCommand()
@@ -759,54 +797,5 @@ namespace IndigoPlugin
         }
     }
 
-    //   public static class IdleTimeDetector
-
-
-
-
-    //{
-    //        [DllImport("user32.dll")]
-    //        static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-
-    //        public static IdleTimeInfo GetIdleTimeInfo()
-    //        {
-    //            int systemUptime = Environment.TickCount,
-    //                lastInputTicks = 0,
-    //                idleTicks = 0;
-
-    //            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
-    //            lastInputInfo.cbSize = (uint)Marshal.SizeOf(lastInputInfo);
-    //            lastInputInfo.dwTime = 0;
-
-    //            if (GetLastInputInfo(ref lastInputInfo))
-    //            {
-    //                lastInputTicks = (int)lastInputInfo.dwTime;
-
-    //                idleTicks = systemUptime - lastInputTicks;
-    //            }
-
-    //            return new IdleTimeInfo
-    //            {
-    //                LastInputTime = DateTime.Now.AddMilliseconds(-1 * idleTicks),
-    //                IdleTime = new TimeSpan(0, 0, 0, 0, idleTicks),
-    //                SystemUptimeMilliseconds = systemUptime,
-    //            };
-    //        }
-    //    }
-
-    //    public class IdleTimeInfo
-    //    {
-    //        public DateTime LastInputTime { get; internal set; }
-
-    //        public TimeSpan IdleTime { get; internal set; }
-
-    //        public int SystemUptimeMilliseconds { get; internal set; }
-    //    }
-
-    //    internal struct LASTINPUTINFO
-    //    {
-    //        public uint cbSize;
-    //        public uint dwTime;
-    //    }
 
 }
