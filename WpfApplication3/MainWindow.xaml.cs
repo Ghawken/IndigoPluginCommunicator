@@ -176,6 +176,7 @@ namespace IndigoPlugin
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = log4net.Core.Level.Debug;
                 ((log4net.Repository.Hierarchy.Logger)Logger.Logger).Level = log4net.Core.Level.Debug;
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
+                Properties.Settings.Default.debuglogging = true;
                 Logger.Info("Setting Logging to Debug Level");
             }
      
@@ -183,13 +184,34 @@ namespace IndigoPlugin
             {
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = log4net.Core.Level.Info;
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
+                Properties.Settings.Default.debuglogging = false;
                 Logger.Info("Setting Logging to Info Level");
                 
             }
             Properties.Settings.Default.Save();
 
         }
+        private void process_CheckedChanged(object sender, RoutedEventArgs e)
+        {
 
+            Logger.Info("process Called");
+            if (checkboxprocess.IsChecked == true)
+            {
+                App.disableCommands = true;  
+                Properties.Settings.Default.disabledcommands = true;
+                Logger.Info("Setting Commands to Disabled.  Checkbox selected.");
+            }
+
+            if (checkboxprocess.IsChecked == false)
+            {
+                App.disableCommands = false;
+                Properties.Settings.Default.disabledcommands = false;
+                Logger.Info("Setting Commands to Allowed.  Checkbox deselected.");
+
+            }
+            Properties.Settings.Default.Save();
+
+        }
         private void SaveSettings(object sender, RoutedEventArgs e)
         {
 

@@ -26,13 +26,14 @@
         <Grid Margin="0,30" HorizontalAlignment="Right"/>
         <Grid Margin="10,90,0,0">
             <TextBox AcceptsReturn="True" VerticalAlignment="Stretch" TextAlignment="Center"
-                     Text="v.0.2 This small app is designed to communicate with a Indigo Server (Mac OSX) and allow uptodate information to be sent/received. It also allows On/Off controls to be sent.  It requires the WinRemote Indigoplugin to be installed and running on your indigo Server." TextWrapping="Wrap" Margin="148,-22,0,-34" HorizontalAlignment="Left" Width="393"></TextBox>
+                     Text="This small app is designed to communicate with a Indigo Server (Mac OSX) and allow uptodate information to be sent/received. It also allows On/Off controls to be sent.  It requires the WinRemote Indigoplugin to be installed and running on your indigo Server." TextWrapping="Wrap" Margin="148,-22,0,-34" HorizontalAlignment="Left" Width="393"></TextBox>
 
         </Grid>
         <Grid Height="22" Canvas.Left="10" Canvas.Top="160" Width="264">
             <TextBlock Margin="10,-2,0,7" FontSize="14" Text="Enter the Server IP Port eg.192.168.1.6:9123" VerticalAlignment="Center" ></TextBlock>
             <TextBox Name="ServerIP" Margin="278,-5,-310,2" FontSize="14" TextAlignment="Left" Background="Gold" VerticalAlignment="Center" Text="{Binding Source={x:Static properties:Settings.Default}, Path=ipaddress}"  ></TextBox>
             <Button Margin="0,25,-310,-21" Background="LawnGreen" Name="Connect" Click="ClickConnect">Connect</Button>
+            <TextBox x:Name="Versioning" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="500,210,-310,-209" FontSize="14" TextAlignment="Left" Background="White" Text="{Binding version, Source={x:Static properties:Settings.Default}}" Height="21" Width="74"  />
 
         </Grid>
         <Grid>
@@ -41,11 +42,13 @@
               Height="101" HorizontalAlignment="Left" Width="570" Margin="-1,6,0,0"  >
                 </TextBlock>
             </Border>
-            <Button Margin="10,333,0,-9" x:Name="SaveButton" Click="SaveSettings" Background="LawnGreen" Content="Save and Continue" />
+            <Button Margin="10,333,0,0" x:Name="SaveButton" Click="SaveSettings" Background="LawnGreen" Content="Save and Continue" />
 
 
-            <CheckBox Margin="232,361,-147,-34" Name="checkboxdebug" Checked="debug_CheckedChanged" Unchecked="debug_CheckedChanged" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=debuglogging}">Enable Debug Logging</CheckBox>
+            <CheckBox Margin="97,366,311,-29" Name="checkboxdebug" Checked="debug_CheckedChanged" Unchecked="debug_CheckedChanged" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=debuglogging}">Enable Debug Logging</CheckBox>
             <TextBlock Text="Indigo Plugin Communicator" FontSize="32" TextAlignment="Right" HorizontalAlignment="Right" Width="510" VerticalAlignment="Bottom" TextDecorations="Underline" Margin="0,0,44,280" />
+
+            <CheckBox Margin="319,366,89,-29" x:Name="checkboxprocess" Checked="process_CheckedChanged" Unchecked="process_CheckedChanged" IsChecked="{Binding disabledcommands, Source={x:Static properties:Settings.Default}}" Content="Disable Process Commands"/>
 
 
 

@@ -70,5 +70,29 @@ namespace IndigoPlugin.Properties {
                 this["debuglogging"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Version 0.6")]
+        public string version {
+            get {
+                return ((string)(this["version"]));
+            }
+            set {
+                this["version"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool disabledcommands {
+            get {
+                return ((bool)(this["disabledcommands"]));
+            }
+            set {
+                this["disabledcommands"] = value;
+            }
+        }
     }
 }

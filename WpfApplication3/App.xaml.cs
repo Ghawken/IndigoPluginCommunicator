@@ -17,6 +17,7 @@ using System.Diagnostics;
 using log4net;
 using System.Net.NetworkInformation;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 
 namespace IndigoPlugin
 {
@@ -48,6 +49,15 @@ namespace IndigoPlugin
         [DllImport("kernel32")]
         extern static UInt64 GetTickCount64();
 
+        public class ReceivedCommand
+        {
+            public string COMMAND { get; set; }
+            public string COMMAND2 { get; set; }
+            public string COMMAND3 { get; set; }
+            public string COMMAND4 { get; set; }
+        }
+
+
         static public string currentVersion { get; set; }
         public string ForegroundApp { get; set; }
         public string CPU { get; set; }
@@ -61,6 +71,7 @@ namespace IndigoPlugin
         public string userName { get; set; }
         public double upTime { get; set; }
         public string windowsVersion { get; set; }
+        public static bool disableCommands { get; set; }
         
 
         PerformanceCounter cpuCounter;
@@ -88,16 +99,16 @@ namespace IndigoPlugin
             
             var is64bit = Environment.Is64BitOperatingSystem;
 
-            Logger.InfoFormat(":: System Major Version:   "+SystemVersion.ToString());
-            Logger.InfoFormat(":: System Version Name:   " + Environment.OSVersion.VersionString.ToString());
-            Logger.InfoFormat(":: System OSVersion Platform:   " + Environment.OSVersion.Platform.ToString());
-            Logger.InfoFormat(":: System OSVersion ServicePack:   " + Environment.OSVersion.ServicePack.ToString());
-            Logger.InfoFormat(":: System OSVersion Build:   " + Environment.OSVersion.Version.Build.ToString());
-            Logger.InfoFormat(":: System OSVersion Major:   " + Environment.OSVersion.Version.Major.ToString());
-            Logger.InfoFormat(":: System OSVersion MajorRevision:   " + Environment.OSVersion.Version.MajorRevision.ToString());
-            Logger.InfoFormat(":: System OSVersion Minor:   " + Environment.OSVersion.Version.Minor.ToString());
-            Logger.InfoFormat(":: System OSVersion MinorRevision:   " + Environment.OSVersion.Version.MinorRevision.ToString());
-            Logger.InfoFormat(":: System OSVersion Revision:   " + Environment.OSVersion.Version.Revision.ToString());
+            Logger.InfoFormat(":: System Major Version:\t\t\t"+SystemVersion.ToString());
+            Logger.InfoFormat(":: System Version Name:\t\t\t" + Environment.OSVersion.VersionString.ToString());
+            Logger.InfoFormat(":: System OSVersion Platform:\t\t" + Environment.OSVersion.Platform.ToString());
+            Logger.InfoFormat(":: System OSVersion ServicePack:\t\t" + Environment.OSVersion.ServicePack.ToString());
+            Logger.InfoFormat(":: System OSVersion Build:\t\t" + Environment.OSVersion.Version.Build.ToString());
+            Logger.InfoFormat(":: System OSVersion Major:\t\t" + Environment.OSVersion.Version.Major.ToString());
+            Logger.InfoFormat(":: System OSVersion MajorRevision:\t" + Environment.OSVersion.Version.MajorRevision.ToString());
+            Logger.InfoFormat(":: System OSVersion Minor:\t\t" + Environment.OSVersion.Version.Minor.ToString());
+            Logger.InfoFormat(":: System OSVersion MinorRevision:\t" + Environment.OSVersion.Version.MinorRevision.ToString());
+            Logger.InfoFormat(":: System OSVersion Revision:\t\t" + Environment.OSVersion.Version.Revision.ToString());
 
             string releaseId = "";
             string productname = "";
@@ -113,13 +124,13 @@ namespace IndigoPlugin
             }
 
 
-            Logger.InfoFormat(":: System OSVersion Release Id:   " + Environment.OSVersion.Version.Revision.ToString());
+            Logger.InfoFormat(":: System OSVersion Release Id:\t\t" + Environment.OSVersion.Version.Revision.ToString());
 
             windowsVersion = productname + " Version " + releaseId.ToString() + " Build " + Environment.OSVersion.Version.Build.ToString();
-            Logger.Info(":: System Windows Version:   " + windowsVersion);
+            Logger.Info(":: System Windows Version:\t\t" + windowsVersion);
 
-            Logger.Info("-------------------------------------------------------------------------");
-            Logger.Info("-------------------------------------------------------------------------");
+//            Logger.Info("-------------------------------------------------------------------------");
+//            Logger.Info("-------------------------------------------------------------------------");
 
 
             this.Dispatcher.UnhandledException += OnDispatcherUnhandledException;
@@ -127,6 +138,7 @@ namespace IndigoPlugin
             string ipaddress = IndigoPlugin.Properties.Settings.Default.ipaddress;
             bool setupcomplete = IndigoPlugin.Properties.Settings.Default.setupcomplete;
             bool debuglogging = IndigoPlugin.Properties.Settings.Default.debuglogging;
+            disableCommands = IndigoPlugin.Properties.Settings.Default.disabledcommands;
 
             // Set variables to nil in case in accessing (can't send html blanks)
             ForegroundApp = "unknown";
@@ -136,14 +148,14 @@ namespace IndigoPlugin
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "4";
+            currentVersion = "6";
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
-            Logger.InfoFormat(":: Application Version   :"+currentVersion.ToString());
+            Logger.InfoFormat(":: Application Version:\t\t\t"+currentVersion.ToString());
             Logger.Info("-------------------------------------------------------------------------");
      //       Logger.Info("-------------------------------------------------------------------------");
-            Logger.InfoFormat(":: Windows 64bit Version   :" + is64bit.ToString());
+            Logger.InfoFormat(":: Windows 64bit Version:\t\t" + is64bit.ToString());
             Logger.Info("-------------------------------------------------------------------------");
            
 
@@ -165,13 +177,13 @@ namespace IndigoPlugin
             {
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = log4net.Core.Level.Debug;
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
-                Logger.Info("Setting Debug Level Logging");
+                Logger.Info(":: Setting Debug Level Logging");
             }
             else
             {
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).Root.Level = log4net.Core.Level.Info;
                 ((log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository()).RaiseConfigurationChanged(EventArgs.Empty);
-                Logger.Info("Setting Info Level Logging Only");
+                Logger.Info(":: Setting Info Level Logging Only");
             }
 
             string startupmessage = "";          
@@ -299,7 +311,7 @@ namespace IndigoPlugin
             try
             {
                 Hostname = System.Net.Dns.GetHostName();
-                Logger.Debug("Hostname set to:" + Hostname);
+                Logger.Debug("Hostname set to:\t\t\t" + Hostname);
             }
             catch { }
 
@@ -310,7 +322,7 @@ namespace IndigoPlugin
             try
             {
                 CPU = getCurrentCpuUsage();
-                Logger.Debug("CPU Usage set to:" + CPU);
+                Logger.Debug("CPU Usage set to:\t\t\t" + CPU);
             }
             catch { }
 
@@ -320,7 +332,7 @@ namespace IndigoPlugin
             try
             {
                 MemLoad = getAvailableRAM();
-                Logger.Debug("Memory Available set to:" + MemLoad);
+                Logger.Debug("Memory Available set to:\t\t" + MemLoad);
             }
             catch { }
 
@@ -332,7 +344,7 @@ namespace IndigoPlugin
                 GetWindowThreadProcessId(hWnd, out procId);
                 var proc = Process.GetProcessById((int)procId);
                 ForegroundApp = proc.ProcessName.ToString();
-                Logger.Debug("Foreground App Set to:" + ForegroundApp);
+                Logger.Debug("Foreground App Set to:\t\t\t" + ForegroundApp);
             }
             catch (Exception exc)
             {
@@ -364,9 +376,9 @@ namespace IndigoPlugin
                 idleTime = idle/60;
                // Logger.Debug("IdleTime: IdleTime SystemUptmeMilliseconds:" + idle.SystemUptimeMilliseconds.ToString());
                //  Logger.Debug("IdleTime: IdleTime LastInputTime:" + idle.LastInputTime.ToString());
-                Logger.Debug("IdleTime: IdleTime Seconds:" + idle.ToString());
+                Logger.Debug("IdleTime: IdleTime Seconds:\t\t" + idle.ToString());
 
-                Logger.Debug("IdleTime: Minutes:" + idleTime.ToString());
+                Logger.Debug("IdleTime: Minutes:\t\t\t" + idleTime.ToString());
             }
             catch (Exception exc)
             {
@@ -376,7 +388,7 @@ namespace IndigoPlugin
             try
             {
                 string user = Environment.UserName.ToString();
-                Logger.Debug("Username Returned as:" + user);
+                Logger.Debug("Username Returned as:\t\t\t" + user);
                 userName = user;
             }
             catch (Exception exc)
@@ -396,21 +408,21 @@ namespace IndigoPlugin
 
                     upTime = Math.Truncate(100 * upTime) / 100;
 
-                    Logger.Debug("upTime: Environment.TickCount equals:" + tickcount.ToString());
-                    Logger.Debug("upTime =" + upTime);   
+                    Logger.Debug("upTime: Environment.TickCount equals:\t" + tickcount.ToString());
+                    Logger.Debug("upTime =\t\t\t\t" + upTime);   
                 }
                 else
                 {
                     UInt64 tickcount = GetTickCount64();
                     var doubletickcount = Convert.ToDouble(tickcount);
                     upTime = TimeSpan.FromMilliseconds(doubletickcount).TotalHours;
-                    Logger.Debug("upTime Before Truncate =" + upTime);
+                    Logger.Debug("upTime Before Truncate =\t\t" + upTime);
 
                     upTime = System.Math.Round(upTime, 3);
                    // upTime = Math.Truncate(100 * upTime) / 100;
 
-                    Logger.Debug("upTime: GetTickCount64 used, equals:" + tickcount.ToString());
-                    Logger.Debug("upTime =" + upTime);
+                    Logger.Debug("upTime: GetTickCount64 used, equals:\t" + tickcount.ToString());
+                    Logger.Debug("upTime =\t\t\t\t" + upTime);
                 }
 
             }
@@ -532,9 +544,6 @@ namespace IndigoPlugin
                 // Get the request stream.
                 Stream dataStream = request.GetRequestStream();
                 // Write the data to the request stream.
-                //
-
-                //
                 dataStream.Write(byteArray, 0, byteArray.Length);
                 // Close the Stream object.
                 dataStream.Close();
@@ -549,7 +558,7 @@ namespace IndigoPlugin
                 var versionheader = ((HttpWebResponse)response).Headers["IndigoPluginVersion"].ToString();
 
                 // Logger.Debug(statusdescription);
-                Logger.Debug("--------Response Status Received:"+statusdescription);
+                Logger.Debug(":: Response Status Received:\t\t"+statusdescription);
                 //Logger.Debug("--------Headers Recevied:" + headers);
                // Logger.Debug("--------IpHeader Key[0] Recevied:" + ipHeaderkey);
                // Logger.Debug("--------IpHeader Result for key IPAddress Recevied:" + ipHeaderResult);
@@ -573,7 +582,7 @@ namespace IndigoPlugin
                 // App.nIcon.Text = "Indigo Plugin Communicator.  Connected";             
                 Logger.Debug("Information sent to Indigo....");
                 Logger.Debug(api);
-                Logger.Debug("Response from Server:" + responseFromServer);
+                Logger.Debug(":: Response from Server:\t" + responseFromServer);
                 // Check for Commands back from Indigo
 
                 checkCommands(statusdescription);
@@ -590,51 +599,99 @@ namespace IndigoPlugin
         }
         public void checkCommands(string response)
         {
-            Logger.Debug("checkCommand Called with data:" + response);
-
-            if (!response.Contains("COMMAND"))
+            try
             {
-                Logger.Debug("No COMMAND found exiting checkCommands");
-            }
+                Logger.Debug("checkCommand Called with data:" + response);
 
-            if (response.Contains("COMMAND MESSAGE"))
-            {
-                Logger.Debug("COMMAND MESSAGE Found");
-                var msg = "IndigoPlugin Message";
-                int start_index = response.IndexOf(':') + 1;
-                int end_index = response.LastIndexOf(':');
-                int length = end_index - start_index;
-                msg = response.Substring(start_index, length);             
-                showMessage(msg);
-            }
 
-            if (response.Contains("COMMAND OFF"))
-            {
-                //Shut down computer
-                showMessage("Now Shutting Down the Computer...  You have 10 seconds...");
-                var psi = new ProcessStartInfo("shutdown", "/s /t 10");
-                psi.CreateNoWindow = true;
-                psi.UseShellExecute = false;
-                Process.Start(psi);
-            }
+                //Convert received Json into C# Object Received Command
+                ReceivedCommand Command = JsonConvert.DeserializeObject<ReceivedCommand>(response);
+                //
 
-            if (response.Contains("COMMAND LOCK"))
-            {
-                // Lock the Computer
-                Logger.Debug("COMMAND LOCK Found; Locking Computer");              
-                try
+                Logger.Debug(":: Received Command: Json: COMMAND:" + Command.COMMAND + "\tCOMMAND2:"+Command.COMMAND2+"\tCOMMAND3:"+Command.COMMAND3+"\tCOMMAND4"+Command.COMMAND4);
+
+
+                switch (Command.COMMAND)
                 {
-                    LockWorkStation();
+                    case "":
+                        Logger.Debug("No COMMAND found exiting checkCommands");
+                        break;
+                    case "MESSAGE":
+                        Logger.Debug("COMMAND MESSAGE Found");
+                        var msg = Command.COMMAND2.ToString();
+                        Logger.Debug("Sending Message:" + msg);
+                        showMessage(msg);
+                        break;
+                    case "OFF":
+                    //Shut down computer
+                        showMessage("Now Shutting Down the Computer...  You have 10 seconds...");
+                        var psi = new ProcessStartInfo("shutdown", "/s /t 10");
+                        psi.CreateNoWindow = true;
+                        psi.UseShellExecute = false;
+                        Process.Start(psi);
+                        break;
+                    case "LOCK":
+                        // Lock the Computer
+                        Logger.Debug("COMMAND LOCK Found; Locking Computer");
+                        try
+                        {
+                            LockWorkStation();
+                            break;
+                        }
+                        catch (Exception exc)
+                        {
+                            Logger.Debug("Exception in Lock:" + exc);
+                            break;
+                        }
+                    case "RESTART":
+                        showMessage("Now Restarting the Computer...  You have 20 seconds...");
+                        var restartpsi = new ProcessStartInfo("shutdown", "/r /t 20");
+                        restartpsi.CreateNoWindow = true;
+                        restartpsi.UseShellExecute = false;
+                        Process.Start(restartpsi);
+                        break;
+                    case "PROCESS":
+                        try
+                        {
+                            if (App.disableCommands == true)
+                            {
+                                //No Process Commands allowed. end
+                                Logger.Info("Process Commands for this PC Disabled within checkbox.  All commands will not run.");
+                                showMessage("Process Commands Disabled for this PC.  Change Settings to enable in Main Window.");
+                                return;
+                            }
+
+                            //showMessage("Now Running Selected PROCESS");
+                            // process = Command2, arguments = Command3
+                            var processname = Command.COMMAND2.ToString();
+                            var arguments = Command.COMMAND3.ToString();
+                            var processpsi = new ProcessStartInfo(@processname, arguments);
+                            processpsi.CreateNoWindow = true;
+                            processpsi.UseShellExecute = false;
+                            Process.Start(processpsi);
+                            break;
+                        }
+                        catch (System.ComponentModel.Win32Exception exc)
+                        {
+                            Logger.Error("File Not Found:" + Command.COMMAND2.ToString());
+                            Logger.Error("Exception:" + exc);
+                            showMessage("? Error Running Process:"+exc.ToString());
+                            break;
+                        }
+                        catch (Exception exc)
+                        {
+                            Logger.Error("Error with Run Process Command:" + exc);
+                            break;
+                        }
                 }
-                catch (Exception exc)
-                {
-                    Logger.Debug("Exception in Lock:" + exc);
 
-                }                 
-                    
             }
-            
-      
+            catch (Exception exc)
+            {
+                Logger.Error("Error with Command Processing:" + exc);
+            }
+
+
         }
 
         public void ShutdownCommand()
@@ -678,17 +735,17 @@ namespace IndigoPlugin
                 dataStream = response.GetResponseStream();
                 var headers = ((HttpWebResponse)response).Headers.ToString();
                 // Logger.Debug(statusdescription);
-                Logger.Debug("--------Headers Recevied:" + headers);
+                Logger.Debug(":Headers Recevied:\t" + headers.Replace("\n","\t"));
                 //
                 // Check Version here at Startup and also in Manual Connect Page
                 //
                 var versionheader = ((HttpWebResponse)response).Headers["IndigoPluginVersion"].ToString();
-                Logger.Debug("-------- Version Received:" + versionheader);
-                Logger.Debug("-------- Current App Version:" + currentVersion);
+                Logger.Debug(":: Version Received:\t" + versionheader);
+                Logger.Debug(":: Current App Version:\t" + currentVersion);
                 // Grab Last characters seperated by . character
               
                 var lastversiondigit = versionheader.Substring(versionheader.LastIndexOf(".")+1);
-                Logger.Debug("---------- Last Digit Version Equals:" + lastversiondigit);
+                Logger.Debug(":: Last Digit Version Equals:\t" + lastversiondigit);
                 //Test update system
 //                lastversiondigit = "3";
 
