@@ -46,7 +46,7 @@
 
 
             <CheckBox Margin="97,366,311,-29" Name="checkboxdebug" Checked="debug_CheckedChanged" Unchecked="debug_CheckedChanged" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=debuglogging}">Enable Debug Logging</CheckBox>
-            <TextBlock Text="Indigo Plugin Communicator" FontSize="32" TextAlignment="Right" HorizontalAlignment="Right" Width="510" VerticalAlignment="Bottom" TextDecorations="Underline" Margin="0,0,44,280" />
+            <TextBlock Text="Indigo Plugin Communicator" FontSize="32" TextAlignment="Right" HorizontalAlignment="Right" Width="510" VerticalAlignment="Bottom" TextDecorations="Underline" Margin="0,0,43,290" />
 
             <CheckBox Margin="319,366,89,-29" x:Name="checkboxprocess" Checked="process_CheckedChanged" Unchecked="process_CheckedChanged" IsChecked="{Binding disabledcommands, Source={x:Static properties:Settings.Default}}" Content="Disable Process Commands"/>
 
