@@ -799,12 +799,12 @@ namespace IndigoPlugin
             // Sleep here for 30 seconds on Startup if startup arg sent
             // Removes Windows 10 1803 issue with Network connection taking a while to be up
             //
-            if (e.Args.Length == 1 && e.Args[0] == "startup")
+            if (e.Args.Length == 1 && e.Args[0].Contains("startup"))
             {
                 
                 //Sleep for 30 seconds
-                Logger.Debug("Startup Noted.  Sleeping for 30 seconds");
-                System.Threading.Thread.Sleep(30 * 1000);
+                Logger.Debug("Startup Noted.  Sleeping for 90 seconds");
+                System.Threading.Thread.Sleep(90 * 1000);
             }
             bool createdNew;
             _instanceMutex = new Mutex(true, @"Global\IndigoPlugin", out createdNew);
