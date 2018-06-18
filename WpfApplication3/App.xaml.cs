@@ -148,7 +148,7 @@ namespace IndigoPlugin
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "7";
+            currentVersion = "8";
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
@@ -794,6 +794,18 @@ namespace IndigoPlugin
         protected override void OnStartup(StartupEventArgs e)
         {
             // check that there is only one instance of the control panel running...
+
+
+            // Sleep here for 30 seconds on Startup if startup arg sent
+            // Removes Windows 10 1803 issue with Network connection taking a while to be up
+            //
+            if (e.Args.Length == 1 && e.Args[0] == "startup")
+            {
+                
+                //Sleep for 30 seconds
+                Logger.Debug("Startup Noted.  Sleeping for 30 seconds");
+                System.Threading.Thread.Sleep(30 * 1000);
+            }
             bool createdNew;
             _instanceMutex = new Mutex(true, @"Global\IndigoPlugin", out createdNew);
             if (!createdNew)
