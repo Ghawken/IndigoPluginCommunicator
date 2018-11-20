@@ -18,6 +18,8 @@ using log4net;
 using System.Net.NetworkInformation;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Zeroconf;
+using System.Net.Sockets;
 
 namespace IndigoPlugin
 {
@@ -57,6 +59,7 @@ namespace IndigoPlugin
             public string COMMAND4 { get; set; }
         }
 
+        public bool is_Connected { get; set; }
 
         static public string currentVersion { get; set; }
         public string ForegroundApp { get; set; }
@@ -81,12 +84,33 @@ namespace IndigoPlugin
         string appGuid = ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), true)[0]).Value;
         private Mutex _instanceMutex = null;
 
-        
+        /**
+                public async Task EnumerateAllServicesFromAllHosts()
+                {
+                    ILookup<string, string> domains = await ZeroconfResolver.BrowseDomainsAsync();
+                    var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key));
+                    foreach (var resp in responses)
+                    {
+                        Logger.Info("-------------------------------------------------------------------------");
+                        Logger.Info(resp.DisplayName);
+                        Logger.Info(resp.Id);
+                        Logger.Info(resp.IPAddress);
+                        Logger.Info(resp.Services);
+                        Logger.Info(resp.IPAddresses);
+
+                        Logger.Info("-------------------------------------------------------------------------");
+
+                    }
+                }
+        **/
 
         public void Application_Startup(object sender, StartupEventArgs e)
         {
 
+
+          //  Task task = asyncStartup();
             
+          
 
             Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 20)));
             Logger.Info("-------------------------------------------------------------------------");
@@ -129,8 +153,8 @@ namespace IndigoPlugin
             windowsVersion = productname + " Version " + releaseId.ToString() + " Build " + Environment.OSVersion.Version.Build.ToString();
             Logger.Info(":: System Windows Version:\t\t" + windowsVersion);
 
-//            Logger.Info("-------------------------------------------------------------------------");
-//            Logger.Info("-------------------------------------------------------------------------");
+            //            Logger.Info("-------------------------------------------------------------------------");
+            //            Logger.Info("-------------------------------------------------------------------------");
 
 
             this.Dispatcher.UnhandledException += OnDispatcherUnhandledException;
@@ -245,8 +269,12 @@ namespace IndigoPlugin
                 if (StartupConnect()==false)
                 {
                     // continue
-                    setupcomplete = false;
-                    IndigoPlugin.Properties.Settings.Default.setupcomplete = false;
+                    // Don't reset anything - quietly deal with network down
+                }
+                else
+                {
+                    setupcomplete = true;
+                    IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
                 }
             }               
             MainWindow wnd = new IndigoPlugin.MainWindow();
@@ -290,7 +318,9 @@ namespace IndigoPlugin
 
             if (IndigoPlugin.Properties.Settings.Default.setupcomplete==false)
             {
-                Logger.Info("Failed to Connect.  Not checking until setup");
+                Logger.Info("Failed to Connect.  Checking again....");
+                StartupConnect();
+
                 return;
             }
 
@@ -701,6 +731,7 @@ namespace IndigoPlugin
         }
 
 
+
         public bool StartupConnect()
         {
             string ServerIP = IndigoPlugin.Properties.Settings.Default.ipaddress;
@@ -779,7 +810,9 @@ namespace IndigoPlugin
                 App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Connected", System.Windows.Forms.ToolTipIcon.Info);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Connected";
                 Logger.Info("Connected to Indigo....");
+                IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
                 return true;
+
             }
             catch (Exception exc)
             {
