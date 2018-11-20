@@ -108,9 +108,9 @@ namespace IndigoPlugin
         {
 
 
-          //  Task task = asyncStartup();
-            
-          
+            //  Task task = asyncStartup();
+
+            is_Connected = false;
 
             Logger.Info(string.Concat(Enumerable.Repeat(Environment.NewLine, 20)));
             Logger.Info("-------------------------------------------------------------------------");
@@ -264,19 +264,8 @@ namespace IndigoPlugin
             // if already setup check connection and then reset setupcomplete as needed
             if (setupcomplete == true)
             {
-                // Should already be setup
-                // Connect and don't open window
-                if (StartupConnect()==false)
-                {
-                    // continue
-                    // Don't reset anything - quietly deal with network down
-                }
-                else
-                {
-                    setupcomplete = true;
-                    IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
-                }
-            }               
+                StartupConnect();
+            }       
             MainWindow wnd = new IndigoPlugin.MainWindow();
             // if not complete show window
             // might need to show then minimise?
@@ -316,7 +305,7 @@ namespace IndigoPlugin
             //Called every 60 seconds I hope
             //Send info to Indigo
 
-            if (IndigoPlugin.Properties.Settings.Default.setupcomplete==false)
+            if (is_Connected == false)
             {
                 Logger.Info("Failed to Connect.  Checking again....");
                 StartupConnect();
@@ -616,15 +605,18 @@ namespace IndigoPlugin
                 // Check for Commands back from Indigo
 
                 checkCommands(statusdescription);
-
+                is_Connected = true;
                 return true;
+                
             }
             catch (Exception exc)
             {
                 App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Failed to Connect.";
                 Logger.Error("Error Communicating with Indigo Server.." + exc);
+                is_Connected = false;
                 return false;
+                
             }
         }
         public void checkCommands(string response)
@@ -784,7 +776,7 @@ namespace IndigoPlugin
                 {
                     if (int.Parse(lastversiondigit) > int.Parse(currentVersion))
                     {
-                        Logger.Info("---------------Updated Required.  Please download and Update your PC's Software-------------");
+                        Logger.Info("---------------Update is Required.  Please download and Update your PC's Software-------------");
                         updateNeeded = true;
                     }
                 }
@@ -810,7 +802,7 @@ namespace IndigoPlugin
                 App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Connected", System.Windows.Forms.ToolTipIcon.Info);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Connected";
                 Logger.Info("Connected to Indigo....");
-                IndigoPlugin.Properties.Settings.Default.setupcomplete = true;
+                is_Connected = true;
                 return true;
 
             }
@@ -819,6 +811,7 @@ namespace IndigoPlugin
                 App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Failed to Connect.";
                 Logger.Error("Error Communicating with Indigo Server.." + exc);
+                is_Connected = false;
                 return false;
             }
         }
