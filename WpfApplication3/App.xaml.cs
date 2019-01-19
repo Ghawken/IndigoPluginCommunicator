@@ -630,7 +630,7 @@ namespace IndigoPlugin
             }
             catch (Exception exc)
             {
-                App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
+                //App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Failed to Connect.";
                 Logger.Error("Error Communicating with Indigo Server.." + exc);
                 is_Connected = false;
@@ -827,7 +827,7 @@ namespace IndigoPlugin
             }
             catch (Exception exc)
             {
-                App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
+                //App.nIcon.ShowBalloonTip(5000, "Indigo Plugin Communicator", "Failed to Connect", System.Windows.Forms.ToolTipIcon.Error);
                 App.nIcon.Text = "Indigo Plugin Communicator.  Failed to Connect.";
                 Logger.Error("Error Communicating with Indigo Server.." + exc);
                 is_Connected = false;
