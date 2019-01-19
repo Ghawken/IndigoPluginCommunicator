@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+//using System.Collections.Generic;
+//using System.Configuration;
 using System.Data;
 using System.Linq;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using System.Windows;
-using System.Drawing;
+//using System.Drawing;
 using System.Reflection;
 using System.IO;
-using System.Xml.Serialization;
+//using System.Xml.Serialization;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -18,8 +18,8 @@ using log4net;
 using System.Net.NetworkInformation;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Zeroconf;
-using System.Net.Sockets;
+//using Zeroconf;
+//using System.Net.Sockets;
 
 namespace IndigoPlugin
 {
@@ -172,16 +172,21 @@ namespace IndigoPlugin
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "8";
+            currentVersion = "9";
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
             Logger.InfoFormat(":: Application Version:\t\t\t"+currentVersion.ToString());
             Logger.Info("-------------------------------------------------------------------------");
-     //       Logger.Info("-------------------------------------------------------------------------");
+            //       Logger.Info("-------------------------------------------------------------------------");
+
+            var app64bit = Environment.Is64BitProcess;
+            Logger.Debug("-------------------- Application 64 bit: " + app64bit + " ---------------------------");
+            Logger.Debug("-------------------------------------------------------------------------");
+
             Logger.InfoFormat(":: Windows 64bit Version:\t\t" + is64bit.ToString());
             Logger.Info("-------------------------------------------------------------------------");
-           
+            
 
             //# Okay Versions across two applications
             //# First Number 0 - ignore
@@ -196,6 +201,20 @@ namespace IndigoPlugin
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
 
             Hostname = System.Net.Dns.GetHostName();
+
+            if (IndigoPlugin.Properties.Settings.Default.UpgradeRequired)
+            {
+                Logger.Debug("::  New Version detected; Upgrading Settings.");
+                IndigoPlugin.Properties.Settings.Default.Upgrade();
+                IndigoPlugin.Properties.Settings.Default.UpgradeRequired = false;
+                IndigoPlugin.Properties.Settings.Default.Save();
+            }
+            else
+            {
+                Logger.Debug("::  No Upgrade detected.  Settings remaining");
+            }
+
+            IndigoPlugin.Properties.Settings.Default.bit64 = app64bit;
 
             if (debuglogging)
             {

@@ -15,9 +15,15 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="version" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Version 0.8</Value>
+      <Value Profile="(Default)">Version 0.9</Value>
     </Setting>
     <Setting Name="disabledcommands" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UpgradeRequired" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="bit64" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

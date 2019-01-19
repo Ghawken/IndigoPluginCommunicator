@@ -6,54 +6,64 @@
         xmlns:local="clr-namespace:IndigoPlugin"
         mc:Ignorable="d"
         xmlns:properties="clr-namespace:IndigoPlugin.Properties"
-        Title="Indigo Plugin Communicator"  Height="435.103" Width="611.086"
+        Title="Indigo Plugin Communicator"  Height="436" Width="612"
         ShowInTaskbar="True" FontFamily="Calibri"
-           WindowStyle="ToolWindow" Background="Ivory">
+           WindowStyle="None" Background="Ivory"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="b2v" />
+    </Window.Resources>
 
-    <Canvas>
-        <Grid Height="386" VerticalAlignment="Top" HorizontalAlignment="Left" Width="515" Canvas.Top="-12" Canvas.Left="-44">
-            <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
-                </TransformGroup>
-            </Grid.RenderTransform>
-            <Grid.Background>
-                <ImageBrush ImageSource="Icons/Win_Remote_Icon.ico" Stretch="None"/>
-            </Grid.Background>
+    <Border        BorderThickness="2"        BorderBrush="Black"        HorizontalAlignment="Left"        VerticalAlignment="Top"        Height="436" Width="612">
+        <Canvas>
+            <Button Name="CloseButton" Background="Red"  Content="X" Click="CloseButton_Click" Height="26" Canvas.Left="582" Canvas.Top="2" Width="24" />
+            <Grid Height="386" VerticalAlignment="Top" HorizontalAlignment="Left" Width="515" Canvas.Top="-12" MouseLeftButtonDown="MoveButton_MouseDown" Canvas.Left="-44">
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid.Background>
+                    <ImageBrush ImageSource="Icons/Win_Remote_Icon.ico" Stretch="None"/>
+                </Grid.Background>
 
 
-        </Grid>
-        <Grid Margin="0,30" HorizontalAlignment="Right"/>
-        <Grid Margin="10,90,0,0">
-            <TextBox AcceptsReturn="True" VerticalAlignment="Stretch" TextAlignment="Center"
+            </Grid>
+
+            <Grid Margin="0,30" HorizontalAlignment="Right"/>
+            <Grid Margin="10,90,0,0">
+                <TextBox AcceptsReturn="True" VerticalAlignment="Stretch" TextAlignment="Center"
                      Text="This small app is designed to communicate with a Indigo Server (Mac OSX) and allow uptodate information to be sent/received. It also allows On/Off controls to be sent.  It requires the WinRemote Indigoplugin to be installed and running on your indigo Server." TextWrapping="Wrap" Margin="148,-22,0,-34" HorizontalAlignment="Left" Width="393"></TextBox>
 
-        </Grid>
-        <Grid Height="22" Canvas.Left="10" Canvas.Top="160" Width="264">
-            <TextBlock Margin="10,-2,0,7" FontSize="14" Text="Enter the Server IP Port eg.192.168.1.6:9123" VerticalAlignment="Center" ></TextBlock>
-            <TextBox Name="ServerIP" Margin="278,-5,-310,2" FontSize="14" TextAlignment="Left" Background="Gold" VerticalAlignment="Center" Text="{Binding Source={x:Static properties:Settings.Default}, Path=ipaddress}"  ></TextBox>
-            <Button Margin="0,25,-310,-21" Background="LawnGreen" Name="Connect" Click="ClickConnect">Connect</Button>
-            <TextBox x:Name="Versioning" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="500,210,-310,-209" FontSize="14" TextAlignment="Left" Background="White" Text="{Binding version, Source={x:Static properties:Settings.Default}}" Height="21" Width="74"  />
+            </Grid>
+            <Grid Height="22" Canvas.Left="8" Canvas.Top="159" Width="264">
 
-        </Grid>
-        <Grid>
-            <Border Margin="10,210,0,15" BorderThickness="1" BorderBrush="Black" >
-                <TextBlock Name="connectInfo" VerticalAlignment="Top" FontSize="14" TextWrapping="Wrap" Text=""
+                <TextBlock Margin="10,-2,0,7" FontSize="14" Text="Enter the Server IP Port eg.192.168.1.6:9123" VerticalAlignment="Center" ></TextBlock>
+                <TextBox Name="ServerIP" Margin="278,-5,-310,2" FontSize="14" TextAlignment="Left" Background="Gold" VerticalAlignment="Center" Text="{Binding Source={x:Static properties:Settings.Default}, Path=ipaddress}"  ></TextBox>
+                <Button Margin="0,25,-310,-21" Background="LawnGreen" Name="Connect" Click="ClickConnect">Connect</Button>
+                <TextBox x:Name="Versioning" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="512,245,-322,-245" FontSize="14" TextAlignment="Left" Background="White" Text="{Binding version, Source={x:Static properties:Settings.Default}}" Height="22" Width="74"  />
+
+            </Grid>
+            <Grid>
+                <Border Margin="10,210,0,15" BorderThickness="1" BorderBrush="Black" >
+                    <TextBlock Name="connectInfo" VerticalAlignment="Top" FontSize="14" TextWrapping="Wrap" Text=""
               Height="101" HorizontalAlignment="Left" Width="570" Margin="-1,6,0,0"  >
-                </TextBlock>
-            </Border>
-            <Button Margin="10,333,0,0" x:Name="SaveButton" Click="SaveSettings" Background="LawnGreen" Content="Save and Continue" />
+                    </TextBlock>
+                </Border>
+                <Button Margin="10,333,0,0" x:Name="SaveButton" Click="SaveSettings" Background="LawnGreen" Content="Save and Continue" />
 
 
-            <CheckBox Margin="97,366,311,-29" Name="checkboxdebug" Checked="debug_CheckedChanged" Unchecked="debug_CheckedChanged" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=debuglogging}">Enable Debug Logging</CheckBox>
-            <TextBlock Text="Indigo Plugin Communicator" FontSize="32" TextAlignment="Right" HorizontalAlignment="Right" Width="510" VerticalAlignment="Bottom" TextDecorations="Underline" Margin="0,0,43,290" />
+                <CheckBox Margin="97,366,311,-29" Name="checkboxdebug" Checked="debug_CheckedChanged" Unchecked="debug_CheckedChanged" IsChecked="{Binding Source={x:Static properties:Settings.Default}, Path=debuglogging}">Enable Debug Logging</CheckBox>
+                <TextBlock Text="Indigo Plugin Communicator" FontSize="32" TextAlignment="Right" HorizontalAlignment="Right" Width="510" VerticalAlignment="Bottom" TextDecorations="Underline" Margin="0,0,43,290"  />
+                <Button x:Name="OpenLog" Visibility="{Binding IsChecked,ElementName=checkboxdebug,Converter={StaticResource b2v}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" Background="AliceBlue" Content=" Open Log Directory" Height="22" Width="120" Canvas.Left="307" Canvas.Top="663" Click="OpenLogDirectory_Click" Margin="98,390,363,-60" />
+                <CheckBox Margin="319,366,89,-29" x:Name="checkboxprocess" Checked="process_CheckedChanged" Unchecked="process_CheckedChanged" IsChecked="{Binding disabledcommands, Source={x:Static properties:Settings.Default}}" Content="Disable Process Commands"/>
+                <TextBox x:Name="bit64" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="14" TextAlignment="Center" Background="White" Text="{Binding bit64, Source={x:Static properties:Settings.Default}}" Height="20" Width="38" RenderTransformOrigin="1.36,0.5" Margin="0,404,160,-72" />
+                <TextBlock FontSize="14" Text="64 bit App:" HorizontalAlignment="Right" VerticalAlignment="Center" Canvas.Left="618" Canvas.Top="663" RenderTransformOrigin="1.877,0.468" Margin="0,405,198,-70" />
 
-            <CheckBox Margin="319,366,89,-29" x:Name="checkboxprocess" Checked="process_CheckedChanged" Unchecked="process_CheckedChanged" IsChecked="{Binding disabledcommands, Source={x:Static properties:Settings.Default}}" Content="Disable Process Commands"/>
 
+            </Grid>
 
-
-        </Grid>
-
-    </Canvas>
+        </Canvas>
+    </Border>
 </Window>
 
