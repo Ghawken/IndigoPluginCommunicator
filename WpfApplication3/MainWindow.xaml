@@ -41,7 +41,7 @@
                 <TextBlock Margin="10,-2,0,7" FontSize="14" Text="Enter the Server IP Port eg.192.168.1.6:9123" VerticalAlignment="Center" ></TextBlock>
                 <TextBox Name="ServerIP" Margin="278,-5,-310,2" FontSize="14" TextAlignment="Left" Background="Gold" VerticalAlignment="Center" Text="{Binding Source={x:Static properties:Settings.Default}, Path=ipaddress}"  ></TextBox>
                 <Button Margin="0,25,-310,-21" Background="LawnGreen" Name="Connect" Click="ClickConnect">Connect</Button>
-                <TextBox x:Name="Versioning" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="512,245,-322,-245" FontSize="14" TextAlignment="Left" Background="White" Text="{Binding version, Source={x:Static properties:Settings.Default}}" Height="22" Width="74"  />
+                <TextBox x:Name="Versioning" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="512,245,-330,-245" FontSize="14" TextAlignment="Left" Background="White" Text="{Binding version, Source={x:Static properties:Settings.Default}}" Height="22" Width="82"  />
 
             </Grid>
             <Grid>

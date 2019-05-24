@@ -172,7 +172,7 @@ namespace IndigoPlugin
             Hostname = "unknown";
             MACaddress = "unknown";
             localIPaddress = "";
-            currentVersion = "9";
+            currentVersion = "15";
             updateNeeded = false;
             idleTime = 0;
             Logger.Info("-------------------------------------------------------------------------");
@@ -796,7 +796,7 @@ namespace IndigoPlugin
                     if (int.Parse(lastversiondigit) > int.Parse(currentVersion))
                     {
                         Logger.Info("---------------Update is Required.  Please download and Update your PC's Software-------------");
-                        updateNeeded = true;
+                        updateNeeded = true; 
                     }
                 }
                 catch (Exception exc)
